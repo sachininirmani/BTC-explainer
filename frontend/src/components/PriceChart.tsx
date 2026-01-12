@@ -69,7 +69,7 @@ export default function PriceChart({
           ))}
         </LineChart>
       </ResponsiveContainer>
-      <small>Tip: click a dot to explain that move.</small>
+      
     </div>
   );
 }

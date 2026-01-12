@@ -42,6 +42,7 @@ app:
     token: ${ADMIN_TOKEN}
 
   jobs:
+    enabled: false
     daily-cron: ${APP_JOBS_DAILY_CRON:0 15 2 * * *}
 
   rate-limit:
