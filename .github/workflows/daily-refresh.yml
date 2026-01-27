@@ -2,10 +2,8 @@ name: Daily BTC Refresh
 
 on:
   schedule:
-    # Runs every day at 02:15 UTC
     - cron: "15 2 * * *"
 
-  # Allows manual trigger from GitHub UI
   workflow_dispatch:
 
 jobs:
@@ -13,8 +11,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Wait for backend to wake up (Render cold start)
+        run: |
+          echo "Waiting for backend to become ready..."
+          for i in {1..30}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.BACKEND_URL }}/api/health" || echo "000")
+            echo "Attempt $i: HTTP $STATUS"
+            if [ "$STATUS" = "200" ]; then
+              echo "Backend is ready"
+              break
+            fi
+            sleep 15
+          done
+
       - name: Trigger admin refresh endpoint
         run: |
-          curl -X POST "${{ secrets.BACKEND_URL }}/api/admin/refresh" \
+          echo "Triggering admin refresh..."
+          curl -i -f -X POST "${{ secrets.BACKEND_URL }}/api/admin/refresh" \
             -H "X-Admin-Token: ${{ secrets.ADMIN_REFRESH_TOKEN }}" \
             -H "Content-Type: application/json"
+
+      - name: Refresh completed
+        run: echo "Daily BTC refresh completed successfully"
