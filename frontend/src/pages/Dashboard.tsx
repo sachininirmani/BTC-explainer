@@ -83,18 +83,28 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  // 🔹 ADDED: page-level loading for Render cold start
+  const [pageLoading, setPageLoading] = useState(true);
+
   useEffect(() => {
     (async () => {
       try {
         setErr(null);
+
+        // 🔹 ADDED
+        setPageLoading(true);
+
         const [c, e] = await Promise.all([
-          apiGet<ChartPoint[]>(`/api/chart?days=180`),
-          apiGet<EventPoint[]>(`/api/events?limit=100`)
+          apiGet<ChartPoint[]>(`/api/chart?days=365`),
+          apiGet<EventPoint[]>(`/api/events?limit=365`)
         ]);
         setChart(c);
         setEvents(e);
       } catch (ex: any) {
         setErr(ex.message ?? "Failed to load");
+      } finally {
+        // 🔹 ADDED
+        setPageLoading(false);
       }
     })();
   }, []);
@@ -127,8 +137,18 @@ export default function Dashboard() {
     }
   }, [explain]);
 
-  
-return (
+  // 🔹 ADDED: full-page loader while backend wakes up
+  if (pageLoading) {
+    return (
+      <div className="container">
+        <div className="loading">
+          Waking up backend… this may take a few minutes on first load.
+        </div>
+      </div>
+    );
+  }
+
+  return (
     <div className="container">
       <div className="topbar">
         <div className="brand">
@@ -296,7 +316,6 @@ return (
                               <div className={`factorScore ${scoreCls}`}>{Math.round(score * 100)}%</div>
                             </div>
 
-                            {/* Keep the existing per-factor rendering logic */}
                             {(f.name === "News activity" || f.name === "News intensity") && (
                               <>
                                 <div className="kv">
@@ -340,7 +359,6 @@ return (
                                 )}
                               </>
                             )}
-
 
                             {f.name === "Fear & Greed Index" && (
                               <>
@@ -411,11 +429,9 @@ return (
                               </>
                             )}
 
-                            {/* Generic fallback for any other factor types */}
                             {["News activity", "News intensity", "Fear & Greed Index", "FX context (EUR/USD)", "Weather risk"].includes(
                               f.name
                             ) ? null : (
-
                               <>
                                 {f.evidence?.explanation && <div className="note">{String(f.evidence.explanation)}</div>}
                                 {f.evidence?.note && <div className="note">{String(f.evidence.note)}</div>}
@@ -447,5 +463,4 @@ return (
       </div>
     </div>
   );
-
 }

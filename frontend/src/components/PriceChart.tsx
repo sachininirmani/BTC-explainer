@@ -7,11 +7,25 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-  ReferenceDot
+  ReferenceDot,
+  Brush
 } from "recharts";
 
-export type ChartPoint = { date: string; open: string; high: string; low: string; close: string };
-export type EventPoint = { id: number; date: string; direction: string; pctChange: string; severity: number };
+export type ChartPoint = {
+  date: string;
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+};
+
+export type EventPoint = {
+  id: number;
+  date: string;
+  direction: string;
+  pctChange: string;
+  severity: number;
+};
 
 function severityColor(sev: number): string {
   switch (sev) {
@@ -50,10 +64,28 @@ export default function PriceChart({
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={series}>
           <CartesianGrid strokeDasharray="3 3" opacity={0.25} />
-          <XAxis dataKey="date" tick={{ fontSize: 11 }} minTickGap={24} />
-          <YAxis tick={{ fontSize: 11 }} domain={["auto", "auto"]} />
+
+          <XAxis
+            dataKey="date"
+            tick={{ fontSize: 11 }}
+            minTickGap={24}
+          />
+
+          <YAxis
+            tick={{ fontSize: 11 }}
+            domain={["auto", "auto"]}
+          />
+
           <Tooltip />
-          <Line type="monotone" dataKey="close" dot={false} strokeWidth={2} stroke="#16a34a" />
+
+          <Line
+            type="monotone"
+            dataKey="close"
+            dot={false}
+            strokeWidth={2}
+            stroke="#16a34a"
+          />
+
           {dots.map((d) => (
             <ReferenceDot
               key={d.date}
@@ -67,9 +99,19 @@ export default function PriceChart({
               onClick={() => onSelectEvent(d.event.id)}
             />
           ))}
+
+          {/* 
+            Brush enables horizontal scrolling / zooming
+            This allows navigating older BTC price history
+          */}
+          <Brush
+            dataKey="date"
+            height={28}
+            stroke="#16a34a"
+            travellerWidth={10}
+          />
         </LineChart>
       </ResponsiveContainer>
-      
     </div>
   );
 }
